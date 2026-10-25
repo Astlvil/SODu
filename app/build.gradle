@@ -1,0 +1,24 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.orbit.tv'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.orbit.tv'
+        minSdk 21
+        targetSdk 30
+        versionCode Integer.parseInt((project.findProperty('vCode') ?: '1').toString())
+        versionName '4.0'
+    }
+    signingConfigs {
+        debug {
+            storeFile file('../debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

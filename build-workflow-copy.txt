@@ -1,0 +1,42 @@
+name: Build Orbit TV v3
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove stale v2 banner file if present
+        run: rm -f app/src/main/res/drawable/banner.xml
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Build
+        run: gradle assembleDebug -PvCode=${{ github.run_number }} --no-daemon
+      - name: Verify APK
+        continue-on-error: true
+        run: |
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/aapt2 dump badging app/build/outputs/apk/debug/app-debug.apk | head -12
+          $BT/apksigner verify --verbose app/build/outputs/apk/debug/app-debug.apk
+      - name: Name the APK and show its size
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk OrbitTV.apk
+          ls -l OrbitTV.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OrbitTV-apk
+          path: OrbitTV.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v3-build-${{ github.run_number }}
+          name: Orbit TV v3 build ${{ github.run_number }}
+          files: OrbitTV.apk
+          make_latest: true
